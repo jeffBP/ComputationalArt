@@ -1,6 +1,6 @@
 """ TODO: Put your header comment here """
 
-import random
+import random, math
 from PIL import Image
 
 
@@ -15,8 +15,45 @@ def build_random_function(min_depth, max_depth):
                  (see assignment writeup for details on the representation of
                  these functions)
     """
-    # TODO: implement this
-    pass
+    depth = random.randint(min_depth, max_depth)
+    return genRandBit(0, depth)
+
+def genRandBit(recurseDepth, maxDepth):
+    funcList = ["prod", "avg", "cos_pi", "sin_pi"]
+    function = funcList[math.floor((random.random()*len(funcList)))]
+
+    if recurseDepth == maxDepth:
+        xOrY = math.floor(random.random()*2)
+        if xOrY%2 == 0:
+            return ["x"]
+        else:
+            return ["y"]
+    elif function == "prod":
+        return ["prod", genRandBit(recurseDepth+1, maxDepth), genRandBit(recurseDepth+1, maxDepth)]
+
+    elif function == "avg":
+        return ["avg", genRandBit(recurseDepth+1, maxDepth), genRandBit(recurseDepth+1, maxDepth)]
+    elif function == "cos_pi":
+        return ["cos_pi", genRandBit(recurseDepth+1, maxDepth)]
+    elif function == "sin_pi":
+        return ["sin_pi", genRandBit(recurseDepth+1, maxDepth)]
+    else:
+        return None
+
+def prod(a, b):
+    return a*b
+
+
+def avg(a, b):
+    return 0.5*(a + b)
+
+
+def cos_pi(a):
+    return math.cos(math.pi*a)
+
+
+def sin_pi(a):
+    return math.sin(math.pi*a)
 
 
 def evaluate_random_function(f, x, y):
@@ -33,8 +70,23 @@ def evaluate_random_function(f, x, y):
         >>> evaluate_random_function(["y"],0.1,0.02)
         0.02
     """
-    # TODO: implement this
-    pass
+    func = f[0]
+    if func == "x":
+        return x
+    elif func == "y":
+        return y
+    elif func == "prod":
+        return prod(evaluate_random_function(f[1], x, y), evaluate_random_function(f[2], x, y))
+    elif func == "cos_pi":
+        return cos_pi(evaluate_random_function(f[1], x, y))
+    elif func == "sin_pi":
+        return sin_pi(evaluate_random_function(f[1], x, y))
+    elif func == "avg":
+        return avg(evaluate_random_function(f[1], x, y), evaluate_random_function(f[2], x, y))
+    else:
+        return None
+
+
 
 
 def remap_interval(val,
@@ -53,7 +105,7 @@ def remap_interval(val,
                             values for val
         output_interval_start: the start of the interval that contains all
                                possible output values
-        output_inteval_end: the end of the interval that contains all possible
+        output_interval_end: the end of the interval that contains all possible
                             output values
         returns: the value remapped from the input to the output interval
 
@@ -64,8 +116,11 @@ def remap_interval(val,
         >>> remap_interval(5, 4, 6, 1, 2)
         1.5
     """
-    # TODO: implement this
-    pass
+    ratioOfRanges = (output_interval_end-output_interval_start)/(input_interval_end-input_interval_start)
+    movedVal = val - (input_interval_start)
+    scaledVal = movedVal*ratioOfRanges
+    scaledVal = scaledVal + output_interval_start
+    return scaledVal
 
 
 def color_map(val):
@@ -109,16 +164,16 @@ def test_image(filename, x_size=350, y_size=350):
     im.save(filename)
 
 
-def generate_art(filename, x_size=350, y_size=350):
+def generate_art(filename, min_depth, max_depth, x_size=350, y_size=350):
     """ Generate computational art and save as an image file.
 
         filename: string filename for image (should be .png)
         x_size, y_size: optional args to set image dimensions (default: 350)
     """
     # Functions for red, green, and blue channels - where the magic happens!
-    red_function = ["x"]
-    green_function = ["y"]
-    blue_function = ["x"]
+    red_function = build_random_function(min_depth, max_depth)
+    green_function = build_random_function(min_depth, max_depth)
+    blue_function = build_random_function(min_depth, max_depth)
 
     # Create image and loop over all pixels
     im = Image.new("RGB", (x_size, y_size))
@@ -147,4 +202,5 @@ if __name__ == '__main__':
 
     # Test that PIL is installed correctly
     # TODO: Comment or remove this function call after testing PIL install
-    test_image("noise.png")
+    #generate_art("myArt.png", 1600, 900)
+generate_art("myArt1.png", 0, 20, 1920, 1080)
